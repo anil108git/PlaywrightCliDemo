@@ -1,2 +1,0 @@
-[     149ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://rahulshettyacademy.com/client/#/auth/login:0
-[   10469ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ https://rahulshettyacademy.com/api/ecom/auth/login:0
