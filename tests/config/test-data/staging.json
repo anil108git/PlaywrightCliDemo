@@ -1,0 +1,31 @@
+{
+  "urls": {
+    "base": "https://staging.rahulshettyacademy.com",
+    "client": "https://staging.rahulshettyacademy.com/client",
+    "login": "https://staging.rahulshettyacademy.com/client/#/auth/login",
+    "dashboard": "https://staging.rahulshettyacademy.com/client/#/dashboard/dash",
+    "passwordReset": "https://staging.rahulshettyacademy.com/client/#/auth/password-new",
+    "register": "https://staging.rahulshettyacademy.com/client/#/auth/register",
+    "apiLogin": "/api/ecom/auth/login"
+  },
+  "credentials": {
+    "validEmail": "ak108.mail@gmail.com",
+    "validPassword": "Qwerty@11",
+    "invalidEmail": "invalid@test.com",
+    "invalidPassword": "WrongPassword123",
+    "sqlInjectionEmail": "' OR 1=1 --",
+    "xssEmail": "<script>alert(1)</script>",
+    "unicodeEmail": "üñíçödé@example.com",
+    "plusTagEmail": "test+tag@gmail.com",
+    "longEmailPrefix": "aaaaa",
+    "emailWithSpacesPrefix": "ak108.mail"
+  },
+  "ui": {
+    "pageTitle": "Let's Shop",
+    "emailPlaceholder": "email@example.com",
+    "passwordPlaceholder": "enter your passsword",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "loginTitle": "Log in"
+  }
+}

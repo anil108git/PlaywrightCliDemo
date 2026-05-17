@@ -1,0 +1,41 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  api-tests:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22.17
+    - name: Install dependencies
+      run: npm ci
+    - name: Run API tests
+      run: ENV=dev npx playwright test --project=api
+
+  ui-tests:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    needs: api-tests
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Run UI tests
+      run: ENV=dev npx playwright test --ignore=**/api/**
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 7

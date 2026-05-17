@@ -1,0 +1,9 @@
+[     960ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://rahulshettyacademy.com/client/#/auth/login:0
+[   11865ms] [WARNING] [ngx-spinner]: Property "type" is missed. Please, provide animation type to <ngx-spinner> component
+        and ensure css is added to angular.json file @ https://rahulshettyacademy.com/client/342.9e55d8a34323d7dafdac.js:0
+[   11866ms] [WARNING] [ngx-spinner]: Property "type" is missed. Please, provide animation type to <ngx-spinner> component
+        and ensure css is added to angular.json file @ https://rahulshettyacademy.com/client/342.9e55d8a34323d7dafdac.js:0
+[   12001ms] [LOG] 0 @ https://rahulshettyacademy.com/client/135.4782aab7a591d79cf5e5.js:0
+[   12049ms] [LOG] 1 @ https://rahulshettyacademy.com/client/135.4782aab7a591d79cf5e5.js:0
+[   12092ms] [LOG] 2 @ https://rahulshettyacademy.com/client/135.4782aab7a591d79cf5e5.js:0
+[   24961ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://rahulshettyacademy.com/client/#/auth/login:0

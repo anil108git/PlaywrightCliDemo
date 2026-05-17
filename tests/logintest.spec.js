@@ -1,0 +1,131 @@
+const { test, expect } = require('@playwright/test');
+const { POManager } = require('./pages/POManager');
+const { credentials, urls } = require('./config');
+
+let poManager;
+
+test.beforeEach(async ({ page }) => {
+  poManager = new POManager(page);
+  await poManager.getLoginPage().goto();
+});
+
+test.describe('Positive Flow - Smoke Tests', () => {
+
+  test('TC2: Verify successful login with valid credentials @smoke @regression @ui', async ({ page }) => {
+    const dashboardPage = poManager.getDashboardPage();
+    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
+    await expect(page).toHaveURL(/dashboard/);
+    await expect(dashboardPage.productCards.first()).toBeVisible({ timeout: 10000 });
+    const productCount = await dashboardPage.getProductCount();
+    expect(productCount).toBeGreaterThan(0);
+  });
+
+});
+
+test.describe('Negative Flow - Validation Tests', () => {
+
+  test('TC3: Verify login fails with invalid email format @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login('notanemail', credentials.validPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC4: Verify login fails with incorrect password @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login(credentials.validEmail, credentials.invalidPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC5: Verify login fails with empty email field @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login('', credentials.validPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC6: Verify login fails with empty password field @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login(credentials.validEmail, '');
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC7: Verify login fails with both fields empty @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login('', '');
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+});
+
+test.describe('Edge Case Tests', () => {
+
+  test('TC8: Verify system handles SQL injection-like input in email @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login(credentials.sqlInjectionEmail, credentials.validPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC9: Verify system handles XSS attempt in email field @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login(credentials.xssEmail, credentials.validPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC10: Verify login with email containing leading/trailing spaces @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login(`  ${credentials.validEmail}  `, credentials.validPassword);
+    const currentUrl = page.url();
+    expect(currentUrl).toContain('/auth/login');
+  });
+
+  test('TC11: Verify login with very long email input @regression @ui', async ({ page }) => {
+    const longEmail = credentials.longEmailPrefix.repeat(50) + '@test.com';
+    await poManager.getLoginPage().login(longEmail, credentials.validPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC12: Verify login with unicode/special characters in email @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login(credentials.unicodeEmail, credentials.validPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+  test('TC13: Verify login with email having special characters like +tag @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().login(credentials.plusTagEmail, credentials.validPassword);
+    await expect(page).not.toHaveURL(/dashboard/);
+    expect(page.url()).toContain('/auth/login');
+  });
+
+});
+
+test.describe('UI Elements Verification', () => {
+
+  test('TC14: Verify all critical UI elements are present on login page @regression @ui', async ({ page }) => {
+    const loginPage = poManager.getLoginPage();
+
+    await expect(loginPage.loginTitle).toBeVisible();
+    await expect(loginPage.emailInput).toBeVisible();
+    await expect(loginPage.passwordInput).toBeVisible();
+    await expect(loginPage.loginButton).toBeVisible();
+    await expect(loginPage.forgotPasswordLink).toBeVisible();
+    await expect(loginPage.emailLabel).toHaveText('Email');
+    await expect(loginPage.passwordLabel).toHaveText('Password');
+
+    expect(await loginPage.getEmailPlaceholder()).toBe('email@example.com');
+    expect(await loginPage.getPasswordPlaceholder()).toBe('enter your passsword');
+  });
+
+});
+
+test.describe('Navigation Tests', () => {
+
+  test('TC15: Verify forgot password link navigates to reset page @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().clickForgotPassword();
+    await expect(page).toHaveURL(/password-new/);
+  });
+
+  test('TC16: Verify register link navigates to register page @regression @ui', async ({ page }) => {
+    await poManager.getLoginPage().clickRegister();
+    await expect(page).toHaveURL(/register/);
+  });
+
+});
