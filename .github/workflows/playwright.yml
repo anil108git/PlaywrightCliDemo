@@ -32,7 +32,7 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run UI tests
-      run: ENV=dev npx playwright test --ignore=**/api/**
+      run: ENV=dev npx playwright test --project=ui-chromium
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
