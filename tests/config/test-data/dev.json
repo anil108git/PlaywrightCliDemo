@@ -6,7 +6,8 @@
     "dashboard": "https://rahulshettyacademy.com/client/#/dashboard/dash",
     "passwordReset": "https://rahulshettyacademy.com/client/#/auth/password-new",
     "register": "https://rahulshettyacademy.com/client/#/auth/register",
-    "apiLogin": "/api/ecom/auth/login"
+    "apiLogin": "/api/ecom/auth/login",
+    "apiGetAllProducts": "/api/ecom/product/get-all-products"
   },
   "credentials": {
     "validEmail": "ak108.mail@gmail.com",
