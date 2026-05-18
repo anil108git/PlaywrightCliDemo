@@ -1,64 +1,85 @@
 # Project Context — PlaywrightCLIDemo
 
-This is a Playwright test automation project using Page Object Model (POM) with CommonJS.
+Playwright test automation with Page Object Model (POM) using CommonJS.
 
-## Conventions
+## Fixed Conventions (never change)
 
-- **Module system:** CommonJS (`require`/`module.exports`). The project `package.json` has `"type": "commonjs"`.
-- **Test files:** `tests/*.spec.js` (PascalCase, `.spec.js` suffix). UI tests in `tests/`, API tests in `tests/api/`.
-- **Page objects:** `tests/pages/<Name>Page.js` — class with `constructor(page)`, locators defined in constructor, methods in `async` form.
-- **Page Object Manager:** `tests/pages/POManager.js` — facade that instantiates all page objects and exposes `get<Name>Page()` accessors.
-- **Config:** `tests/config/index.js` loads `.env` and environment-specific JSON from `tests/config/test-data/{env}.json`. All tests import `{ credentials, urls, ui }` from `../config`.
-- **Tags:** Use `@smoke @regression @ui @api` in test names for filterability.
-- **Base URL:** Set via `playwright.config.js` per project. UI projects use `urls.client`, API project uses `urls.base`.
-- **Custom Fixtures:** `tests/fixtures/index.js` extends the base `test` object. Import `{ test, expect }` from `../fixtures` instead of `@playwright/test` when fixtures are needed.
+- **Module system:** CommonJS (`require`/`module.exports`). `package.json` has `"type": "commonjs"`.
+- **Test files:** `tests/*.spec.js` in PascalCase. UI → `tests/<Feature>test.spec.js`, API → `tests/api/<Feature>.api.spec.js`.
+- **Page objects:** `tests/pages/<PageName>.js` — class, locators in `constructor(page)`, `async` methods.
+- **Page Object Manager:** `tests/pages/POManager.js` — facade with `get<Name>Page()` accessors.
+- **Config:** `tests/config/index.js` loads `.env` + `tests/config/test-data/{env}.json`. Import via `const { credentials, urls, ui } = require('../config')`.
+- **Custom fixtures:** `tests/fixtures/index.js` extends base test. Import `{ test, expect }` from `../fixtures`, NOT from `@playwright/test`.
+- **Auth header format:** API uses `authorization: <raw-token>` (lowercase, no `Bearer ` prefix).
+- **Never delete commented sections** in spec files. Comment blocks at the top document intentionally skipped tests — preserve them.
 
-## How to analyze a page for test generation
+## Workflow
 
-1. Open the page URL using playwright-cli (`npx playwright-cli open <url>`)
-2. Take a snapshot: `npx playwright-cli snapshot --boxes`
-3. Capture elements: identify textboxes, buttons, links, dropdowns, toasts, error messages
-4. Capture network: `npx playwright-cli requests` to find API endpoints
-5. Check console: `npx playwright-cli console` for errors/warnings
-6. Try positive and negative interactions to capture error states
+### 1. Analyze a page
+1. `npx playwright-cli open <url>` and login if needed
+2. `npx playwright-cli snapshot --boxes` to capture element refs
+3. `npx playwright-cli requests` to find API endpoints
+4. `npx playwright-cli console` to check warnings/errors
+5. Try positive + negative interactions to capture states
 
-## How to generate test scripts
+### 2. Create/update page object
+- File: `tests/pages/<PageName>.js`
+- Locators: `page.locator('#id')`, `page.getByRole()`, etc.
+- Methods: one `async` method per user interaction
+- Import config: `const { urls, credentials } = require('../config');`
+- **Register new page in POManager.js** — add `constructor` instantiation + `get<Name>Page()` accessor so `poManager` fixture can reach it.
 
-1. Create page object in `tests/pages/<PageName>.js` following existing pattern:
-   - Locators using `page.locator('#id')` or `page.getByRole()` etc.
-   - Methods for each user interaction
-   - Import config: `const { urls, credentials } = require('../config');`
+### 3. Create UI tests
+- File: `tests/<Feature>test.spec.js`
+- Header imports only: fixtures + config.
+- Use `poManager` fixture (auto-creates POManager from `page`):
+  ```js
+  test('TC_X: description @smoke @regression @ui', async ({ page, poManager }) => {
+    await poManager.getLoginPage().goto();
+    // ... steps
+  });
+  ```
+- Use `loggedInPage` fixture when test needs pre-logged-in dashboard state.
+- Never hardcode URLs — add to `tests/config/test-data/{env}.json` (add to **all 3** env files: `dev.json`, `staging.json`, `prod.json`).
+- Tag with `@smoke @regression @ui`.
 
-2. UI tests in `tests/<feature>test.spec.js`:
-   - Import `{ test, expect }` from `../fixtures` (not from `@playwright/test`)
-   - Import config: `const { credentials, urls } = require('../config');`
-   - Use `poManager` fixture instead of manual `let poManager` + `test.beforeEach`:
-     ```js
-     test('description @smoke @regression @ui', async ({ page, poManager }) => {
-       await poManager.getLoginPage().goto();
-       // ... test steps
-     });
-     ```
-   - Use `loggedInPage` fixture when a test needs to start already logged in on the dashboard
-   - Tag tests with `@smoke @regression @ui`
-   - Cover: positive flow, negative flow, edge cases, UI elements, navigation
+### 4. Create API tests
+- File: `tests/api/<Feature>.api.spec.js`
+- Use `request` fixture (no browser) for direct API calls.
+- Use `authToken` fixture when test needs an authenticated session.
+- Never hardcode endpoints — add to `tests/config/test-data/{env}.json` (add to **all 3** env files: `dev.json`, `staging.json`, `prod.json`).
+- Tag with `@smoke @api` or `@regression @api`.
 
-3. API tests in `tests/api/<feature>.api.spec.js`:
-   - Import `{ test, expect }` from `../fixtures` (not from `@playwright/test`)
-   - Import config for credentials/URLs
-   - Use `authToken` fixture when a test needs an authenticated session
-   - Use `request` fixture (no browser, no `page`) for direct API calls
-   - Tag with `@smoke @api` or `@regression @api`
-   - **Never hardcode URLs or endpoints** — always add new API paths to `tests/config/test-data/{env}.json` and import via `const { urls } = require('../config')`
+### 5. Fix a broken test
+1. `npx playwright test --grep "TC_FAILING" --trace on` to capture trace
+2. `npx playwright show-trace test-results/.../trace.zip` to inspect network + console
+3. If locator is stale: use `npx playwright-cli snapshot --boxes` on the page to find updated refs
+4. If endpoint changed: `npx playwright-cli requests` to discover new endpoint, add to all 3 env JSON files
+5. Fix locator/assertion in page object or spec file
+6. Re-run the single test to confirm fix
 
-## Test case selection
+## Test case rules
 
-- **Only automate test cases that add value** — prioritise scenarios that are repeatable, deterministic, and provide meaningful coverage (positive flows, validations, edge cases, UI element presence, navigation).
-- **Do NOT automate** — visual design/colour checks, manual-only workflows, CAPTCHA, one-time edge cases, tests requiring human judgement, or features blocked by environment limitations.
-- **Document skipped test cases** — when a feature or scenario is intentionally not automated, add a comment block at the top of the spec file (after the imports) explaining why (e.g. `// DB_S01: not automated — requires SMS OTP which cannot be bypassed in test environment`). This keeps the audit trail clear without polluting the test runner output.
+### Automate only if:
+- Repeatable, deterministic, provides meaningful coverage (positive flows, validations, edge cases, UI element presence, navigation).
 
-## Test data
+### Do NOT automate:
+- Visual design/colour checks, manual-only workflows, CAPTCHA, one-time edge cases, tests requiring human judgement, features blocked by environment.
 
-- All variable test data goes in `tests/config/test-data/{env}.json`
-- The `ENV` env var selects which JSON is loaded (dev/staging/prod)
-- `config/index.js` re-exports `{ urls, credentials, ui }`
+### Skipped test documentation:
+- Add a comment block at the top of the spec file (after imports) listing each skipped scenario with the reason.
+  ```js
+  // DB_S01: not automated — requires SMS OTP which cannot be bypassed in test environment
+  ```
+
+## Areas of Confusion & Solutions
+
+| Confusion | Why it happened | Fix applied |
+|---|---|---|
+| **Hardcoded URL in `dashboard.api.spec.js`** | AGENTS.md said "import config" but didn't explicitly forbid hardcoding | Added explicit rule: "Never hardcode URLs/endpoints — add to {env}.json" |
+| **Fixture usage mixed with manual setup** | Old guide showed `let poManager` + `test.beforeEach` pattern alongside fixture usage | Removed old pattern; now only fixture-based pattern is documented |
+| **Skipped test comments were removed** | No rule existed protecting comment blocks during edits | Added "Never delete commented sections" as a fixed convention |
+| **Duplicate guidance spread across sections** | "Conventions", "How to generate", and "Test case selection" overlapped | Merged into 3 clean tiers: Fixed Conventions → Workflow → Test case rules |
+| **New page object not added to POManager.js** | Step 2 said "create page object" but didn't mention registration | Added explicit instruction: "Register new page in POManager.js" |
+| **New endpoint added to only 1 env JSON** | Wording said "add to {env}.json" — ambiguous which ones | Clarified: "add to all 3 env files: dev.json, staging.json, prod.json" in both UI and API sections |
+| **No debug workflow for broken tests** | Only creation guidance existed; fixing was undocumented | Added "5. Fix a broken test" with trace → inspect → snapshot → fix → re-run steps |

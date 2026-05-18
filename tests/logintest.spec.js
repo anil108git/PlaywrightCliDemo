@@ -1,6 +1,14 @@
 const { test, expect } = require('./fixtures');
 const { credentials, urls } = require('./config');
 
+// Skipped (not automated) test cases for login:
+// TC_S01: Verify CAPTCHA appears after multiple failed attempts — cannot bypass CAPTCHA in test env
+// TC_S02: Verify browser back button after login does not expose session — manual UX judgement
+// TC_S03: Verify session token expiry redirects to login — requires long wait, low automation value
+// TC_S04: Verify "Remember Me" checkbox persists session across browser restart — uses localStorage persistence
+// TC_S05: Verify password visibility toggle shows/hides password — low risk, trivial UX check
+// TC_S06: Verify login page layout is responsive on mobile viewports — requires screenshot diffing
+
 test.describe('Positive Flow - Smoke Tests', () => {
 
   test('TC2: Verify successful login with valid credentials @smoke @regression @ui', async ({ page, poManager }) => {
