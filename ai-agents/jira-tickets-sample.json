@@ -1,0 +1,26 @@
+[
+  {
+    "id": "JIRA-789",
+    "summary": "Forgot password page not loading",
+    "description": "User reports forgot password page returns 404. Verify the page loads, accepts email input, and sends reset link.",
+    "component": "login",
+    "priority": "high",
+    "labels": ["bug", "regression"]
+  },
+  {
+    "id": "JIRA-790",
+    "summary": "Product search filter not working",
+    "description": "Search by product name returns empty results for valid products. Verify search input filters correctly and displays matching products.",
+    "component": "dashboard",
+    "priority": "critical",
+    "labels": ["bug", "smoke-failure"]
+  },
+  {
+    "id": "JIRA-791",
+    "summary": "Add order cancellation API endpoint",
+    "description": "New endpoint POST /api/ecom/order/cancel to cancel an order. Accepts orderId and reason. Returns cancelled order details.",
+    "component": "orders",
+    "priority": "medium",
+    "labels": ["enhancement", "api"]
+  }
+]

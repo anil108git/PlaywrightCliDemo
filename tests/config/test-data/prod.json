@@ -8,25 +8,5 @@
     "register": "https://rahulshettyacademy.com/client/#/auth/register",
     "apiLogin": "/api/ecom/auth/login",
     "apiGetAllProducts": "/api/ecom/product/get-all-products"
-  },
-  "credentials": {
-    "validEmail": "ak108.mail@gmail.com",
-    "validPassword": "Qwerty@11",
-    "invalidEmail": "invalid@test.com",
-    "invalidPassword": "WrongPassword123",
-    "sqlInjectionEmail": "' OR 1=1 --",
-    "xssEmail": "<script>alert(1)</script>",
-    "unicodeEmail": "üñíçödé@example.com",
-    "plusTagEmail": "test+tag@gmail.com",
-    "longEmailPrefix": "aaaaa",
-    "emailWithSpacesPrefix": "ak108.mail"
-  },
-  "ui": {
-    "pageTitle": "Let's Shop",
-    "emailPlaceholder": "email@example.com",
-    "passwordPlaceholder": "enter your passsword",
-    "emailLabel": "Email",
-    "passwordLabel": "Password",
-    "loginTitle": "Log in"
   }
 }

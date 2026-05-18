@@ -1,5 +1,5 @@
-const { test, expect } = require('./fixtures');
-const { credentials, urls } = require('./config');
+const { test, expect } = require('../fixtures');
+const { credentials, urls } = require('../config');
 
 // Skipped (not automated) test cases for login:
 // TC_S01: Verify CAPTCHA appears after multiple failed attempts — cannot bypass CAPTCHA in test env

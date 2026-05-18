@@ -11,3 +11,10 @@ node_modules/
 # Environment
 .env
 !.env.example
+
+# JIRA config (contains secrets — copy from jira.config.example.json)
+jira.config.json
+
+# Agent output
+bug-report-output.json
+agent-test-generator-output.json

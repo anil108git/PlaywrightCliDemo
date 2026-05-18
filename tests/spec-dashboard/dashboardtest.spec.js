@@ -1,5 +1,5 @@
-const { test, expect } = require('./fixtures');
-const { credentials, urls } = require('./config');
+const { test, expect } = require('../fixtures');
+const { credentials, urls } = require('../config');
 
 // Skipped (not automated) test cases for dashboard:
 // DB_S01: Verify product card images load with correct dimensions — requires human visual judgment
@@ -22,10 +22,7 @@ test.describe('Positive Flow - Smoke Tests', () => {
     await expect(page).toHaveURL(/dashboard/);
   });
 
-  test('TC_DB2: Verify product cards are displayed with correct count @smoke @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB2: Verify product cards are displayed with correct count @smoke @regression @ui', async ({ loggedInPage, poManager }) => {
     const dashboardPage = poManager.getDashboardPage();
     await dashboardPage.waitForDashboardReady();
     const productCount = await dashboardPage.getProductCount();
@@ -37,34 +34,24 @@ test.describe('Positive Flow - Smoke Tests', () => {
     });
   });
 
-  test('TC_DB3: Verify all critical UI elements present on dashboard @smoke @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB3: Verify all critical UI elements present on dashboard @smoke @regression @ui', async ({ loggedInPage, poManager }) => {
     const dashboardPage = poManager.getDashboardPage();
     await dashboardPage.waitForDashboardReady();
-
     await expect(dashboardPage.homeButton).toBeVisible();
     await expect(dashboardPage.ordersButton).toBeVisible();
     await expect(dashboardPage.cartButton).toBeVisible();
     await expect(dashboardPage.signOutButton).toBeVisible();
-
     await expect(dashboardPage.searchInput).toBeVisible();
     await expect(dashboardPage.minPriceInput).toBeVisible();
     await expect(dashboardPage.maxPriceInput).toBeVisible();
-
     await expect(dashboardPage.resultsSummary).toBeVisible();
     await expect(dashboardPage.pagination).toBeVisible();
   });
 
-  test('TC_DB4: Verify each product has name, price, View and Add To Cart buttons @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB4: Verify each product has name, price, View and Add To Cart buttons @regression @ui', async ({ loggedInPage, poManager }) => {
     const dashboardPage = poManager.getDashboardPage();
     await dashboardPage.waitForDashboardReady();
     const count = await dashboardPage.getProductCount();
-
     for (let i = 0; i < count; i++) {
       const card = dashboardPage.productCards.nth(i);
       await expect(card.locator('h5')).toBeVisible();
@@ -78,48 +65,36 @@ test.describe('Positive Flow - Smoke Tests', () => {
 
 test.describe('Navigation Tests', () => {
 
-  test('TC_DB5: Verify clicking ORDERS navigates to orders page @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB5: Verify clicking ORDERS navigates to orders page @regression @ui', async ({ loggedInPage, poManager }) => {
     await poManager.getDashboardPage().waitForDashboardReady();
     await poManager.getDashboardPage().navigateToOrders();
-    await expect(page).toHaveURL(/myorders/);
+    await expect(loggedInPage).toHaveURL(/myorders/);
   });
 
-  test('TC_DB6: Verify clicking Cart navigates to cart page @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB6: Verify clicking Cart navigates to cart page @regression @ui', async ({ loggedInPage, poManager }) => {
     await poManager.getDashboardPage().waitForDashboardReady();
     await poManager.getDashboardPage().navigateToCart();
-    await expect(page).toHaveURL(/cart/);
+    await expect(loggedInPage).toHaveURL(/cart/);
   });
 
-  test('TC_DB7: Verify Sign Out navigates back to login page @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB7: Verify Sign Out navigates back to login page @regression @ui', async ({ loggedInPage, poManager }) => {
     await poManager.getDashboardPage().waitForDashboardReady();
     await poManager.getDashboardPage().signOut();
-    await expect(page).toHaveURL(/login/);
+    await expect(loggedInPage).toHaveURL(/login/);
   });
 
 });
 
 test.describe('Product Interaction Tests', () => {
 
-  test('TC_DB8: Verify clicking View on a product opens product details page @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB8: Verify clicking View on a product opens product details page @regression @ui', async ({ loggedInPage, poManager }) => {
     const dashboardPage = poManager.getDashboardPage();
     await dashboardPage.waitForDashboardReady();
     const productNames = await dashboardPage.getProductNames();
     if (productNames.length > 0) {
       const firstProduct = productNames[0].trim();
       await dashboardPage.viewProduct(firstProduct);
-      await expect(page).toHaveURL(/product-details/);
+      await expect(loggedInPage).toHaveURL(/product-details/);
     }
   });
 
@@ -127,10 +102,7 @@ test.describe('Product Interaction Tests', () => {
 
 test.describe('Edge Case Tests', () => {
 
-  test('TC_DB9: Verify search input accepts text and filters results @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB9: Verify search input accepts text and filters results @regression @ui', async ({ loggedInPage, poManager }) => {
     const dashboardPage = poManager.getDashboardPage();
     await dashboardPage.waitForDashboardReady();
     await dashboardPage.searchProduct('ADIDAS');
@@ -138,10 +110,7 @@ test.describe('Edge Case Tests', () => {
     expect(productNames.length).toBeGreaterThanOrEqual(0);
   });
 
-  test('TC_DB10: Verify minimum and maximum price inputs accept user values @regression @ui', async ({ page, poManager }) => {
-    await poManager.getLoginPage().goto();
-    await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
-    await page.waitForURL(/dashboard/);
+  test('TC_DB10: Verify minimum and maximum price inputs accept user values @regression @ui', async ({ loggedInPage, poManager }) => {
     const dashboardPage = poManager.getDashboardPage();
     await dashboardPage.waitForDashboardReady();
     await dashboardPage.filterByPriceRange(1000, 50000);

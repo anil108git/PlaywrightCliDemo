@@ -18,10 +18,11 @@ function loadJSON(filename) {
   }
 }
 
-const testData = loadJSON(`${ENV}.json`);
+const defaults = loadJSON('default.json');
+const overrides = loadJSON(`${ENV}.json`);
+const testData = { ...defaults, ...overrides };
 
 module.exports = {
-  ENV,
   urls: testData.urls,
   credentials: testData.credentials,
   ui: testData.ui,

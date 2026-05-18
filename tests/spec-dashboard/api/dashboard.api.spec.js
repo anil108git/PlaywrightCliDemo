@@ -1,5 +1,5 @@
-const { test, expect } = require('../fixtures');
-const { urls } = require('../config');
+const { test, expect } = require('../../fixtures');
+const { urls } = require('../../config');
 
 const apiGetAllProducts = urls.apiGetAllProducts;
 

@@ -11,7 +11,10 @@
     "test:ui": "npx playwright test --project=ui-chromium",
     "test:smoke": "npx playwright test --grep @smoke",
     "test:regression": "npx playwright test --grep @regression",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "agent:bug-report": "node ai-agents/agent-bug-report.js",
+    "agent:bug-report:dry-run": "node ai-agents/agent-bug-report.js --dry-run",
+    "agent:test-generator": "node ai-agents/agent-test-generator.js"
   },
   "keywords": [],
   "author": "",

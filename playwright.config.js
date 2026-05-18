@@ -37,21 +37,5 @@ export default defineConfig({
         baseURL: urls.client,
       },
     },
-    // {
-    //   name: 'ui-firefox',
-    //   testIgnore: '**/api/**',
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //     baseURL: urls.client,
-    //   },
-    // },
-    // {
-    //   name: 'ui-webkit',
-    //   testIgnore: '**/api/**',
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //     baseURL: urls.client,
-    //   },
-    // },
   ],
 });
