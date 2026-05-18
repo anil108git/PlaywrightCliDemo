@@ -10,16 +10,20 @@ class DashboardPage {
 
     this.homeButton = page.getByRole('button', { name: 'HOME' });
     this.ordersButton = page.getByRole('button', { name: 'ORDERS' });
-    this.cartButton = page.getByRole('button', { name: 'Cart' });
+    this.cartButton = page.locator('nav').getByRole('button', { name: 'Cart' });
     this.signOutButton = page.getByRole('button', { name: 'Sign Out' });
 
-    this.searchInput = page.locator('input[placeholder="search"]');
-    this.minPriceInput = page.locator('input[placeholder="Min Price"]');
-    this.maxPriceInput = page.locator('input[placeholder="Max Price"]');
+    this.searchInput = page.getByPlaceholder('search').last();
+    this.minPriceInput = page.getByPlaceholder('Min Price').last();
+    this.maxPriceInput = page.getByPlaceholder('Max Price').last();
 
     this.resultsSummary = page.locator('text=Showing');
-    this.pagination = page.locator('nav[aria-label="Pagination"]');
+    this.pagination = page.locator('[aria-label="Pagination"]');
     this.dashboardPageContent = page.locator('.container');
+  }
+
+  async waitForDashboardReady() {
+    await this.productCards.first().waitFor({ state: 'visible', timeout: 15000 });
   }
 
   async getProductCount() {

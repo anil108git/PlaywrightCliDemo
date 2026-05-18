@@ -5,8 +5,10 @@ const apiGetAllProducts = urls.apiGetAllProducts;
 
 test.describe('Dashboard - API Verification', () => {
 
-  test('TC_DB11: Verify get-all-products API returns products @smoke @api', async ({ request }) => {
-    const response = await request.post(apiGetAllProducts);
+  test('TC_DB11: Verify get-all-products API returns products with auth @smoke @api', async ({ request, authToken }) => {
+    const response = await request.post(apiGetAllProducts, {
+      headers: { authorization: authToken }
+    });
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body).toHaveProperty('data');

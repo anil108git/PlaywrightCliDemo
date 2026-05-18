@@ -18,6 +18,7 @@ test.describe('Positive Flow - Smoke Tests', () => {
     await poManager.getLoginPage().goto();
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
+    await poManager.getDashboardPage().waitForDashboardReady();
     await expect(page).toHaveURL(/dashboard/);
   });
 
@@ -26,6 +27,7 @@ test.describe('Positive Flow - Smoke Tests', () => {
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
     const dashboardPage = poManager.getDashboardPage();
+    await dashboardPage.waitForDashboardReady();
     const productCount = await dashboardPage.getProductCount();
     expect(productCount).toBeGreaterThan(0);
     const productNames = await dashboardPage.getProductNames();
@@ -40,6 +42,7 @@ test.describe('Positive Flow - Smoke Tests', () => {
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
     const dashboardPage = poManager.getDashboardPage();
+    await dashboardPage.waitForDashboardReady();
 
     await expect(dashboardPage.homeButton).toBeVisible();
     await expect(dashboardPage.ordersButton).toBeVisible();
@@ -50,7 +53,6 @@ test.describe('Positive Flow - Smoke Tests', () => {
     await expect(dashboardPage.minPriceInput).toBeVisible();
     await expect(dashboardPage.maxPriceInput).toBeVisible();
 
-    await expect(dashboardPage.productCards.first()).toBeVisible();
     await expect(dashboardPage.resultsSummary).toBeVisible();
     await expect(dashboardPage.pagination).toBeVisible();
   });
@@ -60,6 +62,7 @@ test.describe('Positive Flow - Smoke Tests', () => {
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
     const dashboardPage = poManager.getDashboardPage();
+    await dashboardPage.waitForDashboardReady();
     const count = await dashboardPage.getProductCount();
 
     for (let i = 0; i < count; i++) {
@@ -79,6 +82,7 @@ test.describe('Navigation Tests', () => {
     await poManager.getLoginPage().goto();
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
+    await poManager.getDashboardPage().waitForDashboardReady();
     await poManager.getDashboardPage().navigateToOrders();
     await expect(page).toHaveURL(/myorders/);
   });
@@ -87,6 +91,7 @@ test.describe('Navigation Tests', () => {
     await poManager.getLoginPage().goto();
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
+    await poManager.getDashboardPage().waitForDashboardReady();
     await poManager.getDashboardPage().navigateToCart();
     await expect(page).toHaveURL(/cart/);
   });
@@ -95,6 +100,7 @@ test.describe('Navigation Tests', () => {
     await poManager.getLoginPage().goto();
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
+    await poManager.getDashboardPage().waitForDashboardReady();
     await poManager.getDashboardPage().signOut();
     await expect(page).toHaveURL(/login/);
   });
@@ -108,11 +114,12 @@ test.describe('Product Interaction Tests', () => {
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
     const dashboardPage = poManager.getDashboardPage();
+    await dashboardPage.waitForDashboardReady();
     const productNames = await dashboardPage.getProductNames();
     if (productNames.length > 0) {
       const firstProduct = productNames[0].trim();
       await dashboardPage.viewProduct(firstProduct);
-      await expect(page).toHaveURL(/products/);
+      await expect(page).toHaveURL(/product-details/);
     }
   });
 
@@ -125,6 +132,7 @@ test.describe('Edge Case Tests', () => {
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
     const dashboardPage = poManager.getDashboardPage();
+    await dashboardPage.waitForDashboardReady();
     await dashboardPage.searchProduct('ADIDAS');
     const productNames = await dashboardPage.getProductNames();
     expect(productNames.length).toBeGreaterThanOrEqual(0);
@@ -135,6 +143,7 @@ test.describe('Edge Case Tests', () => {
     await poManager.getLoginPage().login(credentials.validEmail, credentials.validPassword);
     await page.waitForURL(/dashboard/);
     const dashboardPage = poManager.getDashboardPage();
+    await dashboardPage.waitForDashboardReady();
     await dashboardPage.filterByPriceRange(1000, 50000);
     await expect(dashboardPage.minPriceInput).toHaveValue('1000');
     await expect(dashboardPage.maxPriceInput).toHaveValue('50000');

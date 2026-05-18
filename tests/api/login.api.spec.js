@@ -74,11 +74,14 @@ test.describe('Login API Tests', () => {
     expect(typeof authToken).toBe('string');
   });
 
-  test('TC26: Verify authenticated request with authToken fixture @regression @api', async ({ request, authToken }) => {
-    const response = await request.get(urls.base + '/api/ecom/user/profile', {
-      headers: { Authorization: `Bearer ${authToken}` }
+  test('TC26: Verify authToken can create an authenticated API context @regression @api', async ({ playwright, authToken }) => {
+    const apiContext = await playwright.request.newContext({
+      baseURL: urls.base,
+      extraHTTPHeaders: { authorization: authToken }
     });
+    const response = await apiContext.post(urls.apiGetAllProducts);
     expect(response.status()).toBe(200);
+    await apiContext.dispose();
   });
 
 });
