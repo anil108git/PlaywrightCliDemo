@@ -345,15 +345,22 @@ function annotateSpecWithJiraKey(failure, issueKey) {
   let content = fs.readFileSync(specFile, 'utf-8');
   if (content.includes(jiraTag)) return false;
 
-  const testTitle = failure.title.replace(/@\w+\s*/g, '').trim();
+  const testTitle = failure.title.replace(/@[\w-]+/g, '').trim();
   const escaped = testTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const existingTagRegex = new RegExp(`(test\\(\\s*'${escaped}[^']*?)@jira-\\S+`);
+  const existingMatch = content.match(existingTagRegex);
+  if (existingMatch) {
+    content = content.replace(existingTagRegex, '$1' + jiraTag);
+    fs.writeFileSync(specFile, content, 'utf-8');
+    return true;
+  }
+
   const regex = new RegExp(`(test\\(\\s*'${escaped}[^']*?)(?=')`);
   const match = content.match(regex);
   if (!match) return false;
 
-  const fullMatch = match[1];
-  const updated = fullMatch + ' ' + jiraTag;
-  content = content.replace(regex, updated);
+  content = content.replace(regex, '$1 ' + jiraTag);
   fs.writeFileSync(specFile, content, 'utf-8');
   return true;
 }

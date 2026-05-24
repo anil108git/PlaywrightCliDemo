@@ -1,66 +1,59 @@
 # PlaywrightCLIDemo
 
-Playwright test suite for [Rahul Shetty Academy's E-Commerce App](https://rahulshettyacademy.com/client) — POM with multi-env support and AI agent scripts for JIRA integration.
+Playwright test suite for [Rahul Shetty Academy's E-Commerce App](https://rahulshettyacademy.com/client) — POM, multi-env, and JIRA bug reporting.
 
 ## Setup
 
 ```bash
 npm install
 npx playwright install --with-deps
-cp .env.example .env    # set ENV=dev
+cp .env.example .env                  # set ENV=dev (default)
+cp jira.config.example.json jira.config.json   # JIRA credentials (optional)
 ```
 
-## Running Tests
+## Commands
 
-```bash
-Commands to run the test suite
-# Everything (UI + API)
-npm test
-# UI only
-npm run test:ui
-# API only
-npm run test:api
-# Specific env
-npm run test:dev          # dev (default)
-npm run test:staging
-npm run test:prod
-# By tag
-npm run test:smoke        # @smoke tagged tests
-npm run test:regression   # @regression tagged tests
-# Single test by grep
-npx playwright test --grep "TC_DB9"
-# Single file
-npx playwright test spec-login/logintest.spec.js
-# Tests + JIRA bug report
-npm run test:report
-```
+| Command | Description |
+|---|---|
+| `npm test` | Run all tests |
+| `npm run test:ui` | UI tests only |
+| `npm run test:api` | API tests only |
+| `npm run test:dev` | Dev env (default) |
+| `npm run test:staging` | Staging env |
+| `npm run test:prod` | Production env |
+| `npm run test:smoke` | `@smoke` tagged tests |
+| `npm run test:regression` | `@regression` tagged tests |
+| `npm run test:report` | Tests + auto-file JIRA bugs |
+| `npm run agent:bug-report` | File JIRA bugs from last run |
+| `npm run agent:bug-report:dry-run` | Dry run (no JIRA calls) |
+| `npm run agent:test-generator -- <file>` | Generate tests from JIRA ticket |
+| `npx playwright test --grep "TC_DB9"` | Single test by grep |
+| `npx playwright test spec-login/logintest.spec.js` | Single file |
+| `npx playwright show-trace test-results/.../trace.zip` | Inspect trace |
 
-## Project Structure
+## Structure
 
 ```
 tests/
-├── spec-<Module>/              # e.g. spec-login/, spec-dashboard/
-│   ├── <Feature>test.spec.js   # UI tests
-│   └── api/                    # API tests
-├── pages/                      # Page objects + POManager
-├── fixtures/                   # Custom fixtures: poManager, authToken, loggedInPage
-├── config/                     # Config loader + test-data (default.json + env overrides)
-ai-agents/                      # agent-bug-report.js, agent-test-generator.js
+├── spec-<Module>/           # e.g. spec-login/, spec-dashboard/
+│   ├── <Feature>test.spec.js
+│   └── api/                 # API test specs
+├── pages/                   # Page objects + POManager
+├── fixtures/                # Custom fixtures: poManager, authToken, loggedInPage
+└── config/                  # Config loader + test-data JSON
+ai-agents/                   # agent-bug-report.js, agent-test-generator.js
 ```
 
-## Key Conventions
+## Conventions
 
-- **Module system:** CommonJS (`require`/`module.exports`)
-- **Imports:** `{ test, expect }` from `../fixtures`, NOT `@playwright/test`
-- **Config:** `{ urls, credentials }` from `../config` — never hardcode URLs
+- **CommonJS** (`require`/`module.exports`)
+- **Fixture imports:** `{ test, expect }` from `../fixtures` (not `@playwright/test`)
+- **Config:** `{ urls, credentials }` from `../config` — never hardcode URLs/endpoints
 - **Auth header:** lowercase `authorization: <raw-token>` (no `Bearer`)
-- **Fixtures:** `poManager`, `loggedInPage` (pre-logged-in), `authToken` (API token)
-- **Tags:** `@smoke @regression @ui @api` on every test for `--grep` filtering
-
-## CI/CD
-
-GitHub Actions pipeline: API tests first (fast gate), then UI Chromium. Test fail → `ai-agents/agent-bug-report.js` auto-files JIRA ticket.
+- **Fixtures:** `poManager` (POM facade), `loggedInPage` (pre-logged-in), `authToken` (cached API token)
+- **Tags:** `@smoke @regression @ui @api` on every test
 
 ## Agents
 
-See `AGENTS.md` for Failure Analyst (auto-bug-report) and Ticket Scanner (test generator from JIRA tickets) setup and usage.
+- **Failure Analyst** (`agent-bug-report.js`): reads `test-results.json` → files JIRA bug per failure. Configure via `jira.config.json` or env vars (`JIRA_HOST`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY`).
+- **Ticket Scanner** (`agent-test-generator.js`): reads JIRA ticket JSON → generates test specs. See `AGENTS.md` for details.
