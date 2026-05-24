@@ -8,15 +8,10 @@
     "xssEmail": "<script>alert(1)</script>",
     "unicodeEmail": "üñíçödé@example.com",
     "plusTagEmail": "test+tag@gmail.com",
-    "longEmailPrefix": "aaaaa",
-    "emailWithSpacesPrefix": "ak108.mail"
+    "longEmailPrefix": "aaaaa"
   },
   "ui": {
-    "pageTitle": "Let's Shop",
     "emailPlaceholder": "email@example.com",
-    "passwordPlaceholder": "enter your passsword",
-    "emailLabel": "Email",
-    "passwordLabel": "Password",
-    "loginTitle": "Log in"
+    "passwordPlaceholder": "enter your passsword"
   }
 }

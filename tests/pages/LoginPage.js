@@ -1,3 +1,4 @@
+const { errors: playwrightErrors } = require('@playwright/test');
 const { urls } = require('../config');
 
 class LoginPage {
@@ -44,8 +45,9 @@ class LoginPage {
     try {
       await this.toastMessage.waitFor({ state: 'visible', timeout: 3000 });
       return true;
-    } catch {
-      return false;
+    } catch (err) {
+      if (err instanceof playwrightErrors.TimeoutError) return false;
+      throw err;
     }
   }
 }

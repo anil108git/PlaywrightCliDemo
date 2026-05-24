@@ -1,8 +1,7 @@
 {
   "name": "playwrightclidemo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Playwright test automation with POM, multi-env support, and JIRA integration",
   "scripts": {
     "test:dev": "ENV=dev npx playwright test",
     "test:staging": "ENV=staging npx playwright test",
@@ -12,7 +11,7 @@
     "test:smoke": "npx playwright test --grep @smoke",
     "test:regression": "npx playwright test --grep @regression",
     "test": "npx playwright test",
-    "test:report": "ENV=dev npx playwright test --reporter=json 2>/dev/null > test-results.json; node ai-agents/agent-bug-report.js --file=test-results.json",
+    "test:report": "npm test; node ai-agents/agent-bug-report.js --file=test-results.json",
     "agent:bug-report": "node ai-agents/agent-bug-report.js",
     "agent:bug-report:dry-run": "node ai-agents/agent-bug-report.js --dry-run",
     "agent:test-generator": "node ai-agents/agent-test-generator.js"

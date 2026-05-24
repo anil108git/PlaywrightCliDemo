@@ -117,7 +117,7 @@ function extractFailures(results) {
 }
 
 function sanitizeTitle(title) {
-  return title.replace(/[^a-zA-Z0-9_\- ]/g, '').trim();
+  return title.replace(/@jira-\S+/g, '').replace(/[^a-zA-Z0-9_\- ]/g, '').trim();
 }
 
 function stripAnsi(str) {
@@ -146,7 +146,7 @@ function parseErrorDetails(message) {
 }
 
 function deriveSteps(title) {
-  const cleaned = title.replace(/@\w+\s*/g, '').trim();
+  const cleaned = title.replace(/@[\w-]+\s*/g, '').trim();
   const match = cleaned.match(/TC\d+:\s*(.*)/);
   const action = match ? match[1] : cleaned;
   return [
@@ -184,16 +184,6 @@ function adfTableRow(label, value) {
   };
 }
 
-function adfTableHeader(label) {
-  return {
-    type: 'tableRow',
-    content: [
-      { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: label, marks: [{ type: 'strong' }] }] }] },
-      { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: label, marks: [{ type: 'strong' }] }] }] },
-    ],
-  };
-}
-
 function adfBulletItem(text) {
   return { type: 'listItem', content: [{ type: 'paragraph', content: [adfText(text)] }] };
 }
@@ -210,18 +200,10 @@ function adfOrderedList(items) {
   return { type: 'orderedList', content: items.map(adfOrderedItem) };
 }
 
-function adfPanel(type, text) {
-  return {
-    type: 'panel',
-    attrs: { panelType: type },
-    content: [{ type: 'paragraph', content: [adfText(text)] }],
-  };
-}
-
 function buildDescription(failure) {
   const error = parseErrorDetails(failure.errors[0]?.message || '');
   const suiteChain = (failure.suiteTitles || []).join(' > ');
-  const testName = failure.title.replace(/@\w+/g, '').trim();
+  const testName = failure.title.replace(/@[\w-]+/g, '').trim();
   const steps = deriveSteps(failure.title);
 
   const content = [];
@@ -351,6 +333,31 @@ function attachFileToIssue(config, issueKey, filePath) {
   });
 }
 
+// ── Spec Annotation ────────────────────────────────────────────────────────
+
+const TESTS_DIR = path.resolve(__dirname, '..', 'tests');
+
+function annotateSpecWithJiraKey(failure, issueKey) {
+  const jiraTag = `@jira-${issueKey}`;
+  const specFile = path.resolve(TESTS_DIR, failure.file);
+  if (!fs.existsSync(specFile)) return false;
+
+  let content = fs.readFileSync(specFile, 'utf-8');
+  if (content.includes(jiraTag)) return false;
+
+  const testTitle = failure.title.replace(/@\w+\s*/g, '').trim();
+  const escaped = testTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(test\\(\\s*'${escaped}[^']*?)(?=')`);
+  const match = content.match(regex);
+  if (!match) return false;
+
+  const fullMatch = match[1];
+  const updated = fullMatch + ' ' + jiraTag;
+  content = content.replace(regex, updated);
+  fs.writeFileSync(specFile, content, 'utf-8');
+  return true;
+}
+
 // ── JIRA API ───────────────────────────────────────────────────────────────
 
 function createJiraIssue(config, failure) {
@@ -425,7 +432,7 @@ async function main() {
   }
 
   console.log(`Found ${failures.length} test failure(s):`);
-  failures.forEach(f => console.log(`  - ${f.title} (${f.file})`));
+  failures.forEach(f => console.log(`  - ${f.title.replace(/@[\w-]+/g, '').trim()} (${f.file})`));
 
   const jiraConfig = dryRun ? null : loadJiraConfig();
 
@@ -446,13 +453,21 @@ async function main() {
   }
 
   console.log(`\nFiling ${failures.length} JIRA ticket(s) on ${jiraConfig.host}...`);
-  const results_ = [];
-  for (const failure of failures) {
-    const result = await createJiraIssue(jiraConfig, failure);
-    results_.push(result);
+  const issueResults = await Promise.allSettled(
+    failures.map(failure => createJiraIssue(jiraConfig, failure))
+  );
+  const results_ = issueResults.map((r, i) => {
+    if (r.status === 'fulfilled') return r.value;
+    return { success: false, error: r.reason?.message || 'Unknown error', summary: failures[i].title };
+  });
+  for (let i = 0; i < failures.length; i++) {
+    const result = results_[i];
     if (result.success) {
       console.log(`  ✓ ${result.key}: ${result.summary}`);
-      const traceFiles = findTraceFiles(failure);
+      if (annotateSpecWithJiraKey(failures[i], result.key)) {
+        console.log(`    ✓ Annotated spec with ${result.key}`);
+      }
+      const traceFiles = findTraceFiles(failures[i]);
       if (traceFiles.length > 0) {
         const attachResults = await attachFilesToIssue(jiraConfig, result.key, traceFiles);
         for (const ar of attachResults) {

@@ -105,9 +105,14 @@ test.describe('Edge Case Tests', () => {
   test('TC_DB9: Verify search input accepts text and filters results @regression @ui', async ({ loggedInPage, poManager }) => {
     const dashboardPage = poManager.getDashboardPage();
     await dashboardPage.waitForDashboardReady();
+    const initialCount = await dashboardPage.getProductCount();
     await dashboardPage.searchProduct('ADIDAS');
-    const productNames = await dashboardPage.getProductNames();
-    expect(productNames.length).toBeGreaterThanOrEqual(0);
+    await dashboardPage.productCards.first().waitFor({ state: 'visible', timeout: 10000 });
+    const filteredNames = await dashboardPage.getProductNames();
+    expect(filteredNames.length).toBeGreaterThan(0);
+    filteredNames.forEach(name => {
+      expect(name.toUpperCase()).toContain('ADIDAS');
+    });
   });
 
   test('TC_DB10: Verify minimum and maximum price inputs accept user values @regression @ui', async ({ loggedInPage, poManager }) => {
@@ -116,6 +121,13 @@ test.describe('Edge Case Tests', () => {
     await dashboardPage.filterByPriceRange(1000, 50000);
     await expect(dashboardPage.minPriceInput).toHaveValue('1000');
     await expect(dashboardPage.maxPriceInput).toHaveValue('50000');
+    await dashboardPage.page.waitForTimeout(2000);
+    const productPrices = await dashboardPage.getProductPrices();
+    expect(productPrices.length).toBeGreaterThan(0);
+    productPrices.forEach(priceText => {
+      const price = parseInt(priceText.replace(/[^0-9]/g, ''), 10);
+      expect(price).toBeGreaterThanOrEqual(1000);
+    });
   });
 
 });

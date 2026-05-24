@@ -85,8 +85,7 @@ test.describe('Edge Case Tests', () => {
   test('TC10: Verify login with email containing leading/trailing spaces @regression @ui', async ({ page, poManager }) => {
     await poManager.getLoginPage().goto();
     await poManager.getLoginPage().login(`  ${credentials.validEmail}  `, credentials.validPassword);
-    const currentUrl = page.url();
-    expect(currentUrl).toContain('/auth/login');
+    await expect(page).not.toHaveURL(/dashboard/);
   });
 
   test('TC11: Verify login with very long email input @regression @ui', async ({ page, poManager }) => {
@@ -115,7 +114,7 @@ test.describe('Edge Case Tests', () => {
 
 test.describe('UI Elements Verification', () => {
 
-  test('TC14: Verify all critical UI elements are present on login page @regression @ui', async ({ page, poManager }) => {
+  test('TC14: Verify all critical UI elements are present on login page @regression @ui @jira-SCRUM-9', async ({ page, poManager }) => {
     await poManager.getLoginPage().goto();
     const loginPage = poManager.getLoginPage();
 

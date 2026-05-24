@@ -45,6 +45,8 @@ class DashboardPage {
     return prices;
   }
 
+
+
   getProductCardByName(productName) {
     return this.productCards.filter({ hasText: productName });
   }

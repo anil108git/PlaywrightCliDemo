@@ -18,3 +18,6 @@ jira.config.json
 # Agent output
 bug-report-output.json
 agent-test-generator-output.json
+
+# Test output
+/test-results.json

@@ -7,7 +7,11 @@ if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
 
+const VALID_ENVS = ['dev', 'staging', 'prod'];
 const ENV = process.env.ENV || 'dev';
+if (!VALID_ENVS.includes(ENV)) {
+  throw new Error(`Unknown environment "${ENV}". Valid options: ${VALID_ENVS.join(', ')}`);
+}
 
 function loadJSON(filename) {
   const filePath = path.resolve(__dirname, 'test-data', filename);
