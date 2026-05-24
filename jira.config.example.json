@@ -1,6 +1,6 @@
 {
-  "host": "https://your-domain.atlassian.net",
-  "email": "your-email@example.com",
-  "apiToken": "your-jira-api-token",
-  "projectKey": "PROJ"
+  "host": "https://jirabugsak08.atlassian.net/",
+  "email": "ak108.mail@gmail.com",
+  "apiToken": "API_Token_key",
+  "projectKey": "SCRUM"
 }

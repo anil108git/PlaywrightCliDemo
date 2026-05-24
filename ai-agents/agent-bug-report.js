@@ -4,6 +4,7 @@ const https = require('https');
 
 const RESULTS_DIR = path.resolve(__dirname, '..', 'test-results');
 const LAST_RUN_FILE = path.join(RESULTS_DIR, '.last-run.json');
+const JSON_REPORT_FILE = path.resolve(__dirname, '..', 'test-results.json');
 const JIRA_CONFIG_FILE = path.resolve(__dirname, '..', 'jira.config.json');
 const DEFAULT_REPORT_FILE = path.resolve(__dirname, '..', 'bug-report-output.json');
 
@@ -29,6 +30,10 @@ function loadResults(filePath) {
   if (filePath && fs.existsSync(filePath)) {
     return { source: 'json-reporter', data: JSON.parse(fs.readFileSync(filePath, 'utf-8')) };
   }
+  if (fs.existsSync(JSON_REPORT_FILE)) {
+    const data = JSON.parse(fs.readFileSync(JSON_REPORT_FILE, 'utf-8'));
+    return { source: 'json-reporter', data };
+  }
   if (fs.existsSync(LAST_RUN_FILE)) {
     const data = JSON.parse(fs.readFileSync(LAST_RUN_FILE, 'utf-8'));
     return { source: 'last-run', data };
@@ -41,6 +46,16 @@ function extractFailuresFromLastRun(lastRun) {
     return [];
   }
   return lastRun.failedTests.map(t => {
+    if (typeof t === 'string') {
+      return {
+        testId: t,
+        title: 'Unknown test',
+        file: 'test-results/.last-run.json',
+        projectName: 'unknown',
+        retry: 0,
+        errors: [{ message: 'Run tests with --reporter=json to get full failure details', stack: '' }],
+      };
+    }
     const filePath = Array.isArray(t.path) ? t.path.join(path.sep) : (t.path || 'unknown');
     const errors = (t.errors || []).map(e => ({
       message: e.message || '',
@@ -103,48 +118,73 @@ function shortenStack(stack) {
   return lines.slice(0, 5).join('\n');
 }
 
+// ── ADF Helpers ────────────────────────────────────────────────────────────
+
+function adfText(text) {
+  return { type: 'text', text: String(text) };
+}
+
+function adfParagraph(items) {
+  return { type: 'paragraph', content: Array.isArray(items) ? items : [adfText(items)] };
+}
+
+function adfHeading(level, text) {
+  return { type: 'heading', attrs: { level }, content: [adfText(text)] };
+}
+
+function adfCodeBlock(text) {
+  return { type: 'codeBlock', attrs: { language: 'text' }, content: [adfText(text)] };
+}
+
+function adfTable(rows) {
+  return {
+    type: 'table',
+    attrs: { isNumberColumnEnabled: false, layout: 'default' },
+    content: [{
+      type: 'tableRow',
+      content: rows.map(cells => ({
+        type: 'tableCell',
+        content: [{ type: 'paragraph', content: [adfText(cells)] }],
+      })),
+    }],
+  };
+}
+
+function buildDescription(failure) {
+  const errorMsg = failure.errors[0]?.message || 'No error message';
+  const stackTrace = shortenStack(failure.errors[0]?.stack) || failure.title;
+  return {
+    type: 'doc',
+    version: 1,
+    content: [
+      adfHeading(2, 'Test Failure Details'),
+      adfTable(['Field', 'Value']),
+      adfTable(['Test', failure.title]),
+      adfTable(['File', failure.file]),
+      adfTable(['Project', failure.projectName]),
+      adfTable(['Retry', String(failure.retry)]),
+      adfHeading(3, 'Error Message'),
+      adfCodeBlock(errorMsg),
+      adfHeading(3, 'Stack Trace'),
+      adfCodeBlock(stackTrace),
+      adfHeading(3, 'Labels'),
+      adfParagraph('playwright, test-failure, ' + failure.projectName),
+      adfParagraph('Automatically filed by Failure Analyst agent'),
+    ],
+  };
+}
+
 // ── JIRA API ───────────────────────────────────────────────────────────────
 
 function createJiraIssue(config, failure) {
   return new Promise((resolve, reject) => {
     const summary = `[Test Failure] ${sanitizeTitle(failure.title)}`;
-    const description = `
-h2. Test Failure Details
-
-|| Field || Value ||
-| Test | ${failure.title} |
-| File | ${failure.file} |
-| Project | ${failure.projectName} |
-| Retry | ${failure.retry} |
-
-h3. Error Message
-
-{code}
-${failure.errors[0]?.message || 'No error message'}
-{code}
-
-h3. Stack Trace
-
-{code}
-${shortenStack(failure.errors[0]?.stack) || failure.title}
-{code}
-
-h3. Labels
-
-- playwright
-- test-failure
-- ${failure.projectName}
-
----
-
-*Automatically filed by Failure Analyst agent*
-`;
 
     const body = JSON.stringify({
       fields: {
         project: { key: config.projectKey },
         summary,
-        description,
+        description: buildDescription(failure),
         issuetype: { name: 'Bug' },
         labels: ['playwright', 'test-failure', failure.projectName.replace(/[^a-zA-Z0-9]/g, '-')],
       },
@@ -194,8 +234,10 @@ async function main() {
 
   const results = loadResults(resultsFile);
   if (!results) {
-    console.log('No test results found. Check test-results/.last-run.json or provide a file.');
-    console.log('Usage: node ai-agents/agent-bug-report.js [--file=<path>] [--dry-run]');
+    console.log('No test results found. Run tests first, then re-run this script.');
+    console.log('Usage:');
+    console.log('  1. ENV=dev npx playwright test --reporter=json 2>/dev/null > test-results.json');
+    console.log('  2. node ai-agents/agent-bug-report.js [--file=test-results.json] [--dry-run]');
     process.exit(0);
   }
 

@@ -17,28 +17,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Download test results artifact
+      - name: Download UI test results (traces + JSON)
         uses: actions/download-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: Download test-results (trace data)
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: test-results/
+          name: test-results-ui
+          path: .
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
         continue-on-error: true
-
-      - name: Re-run failed tests with JSON reporter
-        id: rerun-failed
-        continue-on-error: true
-        run: |
-          npx playwright test --last-failed --reporter=json 2>&1 > test-results.json || true
 
       - name: Run Failure Analyst
         env:

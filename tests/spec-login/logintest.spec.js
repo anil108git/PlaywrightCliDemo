@@ -124,8 +124,8 @@ test.describe('UI Elements Verification', () => {
     await expect(loginPage.passwordInput).toBeVisible();
     await expect(loginPage.loginButton).toBeVisible();
     await expect(loginPage.forgotPasswordLink).toBeVisible();
-    await expect(loginPage.emailLabel).toHaveText('Email');
-    await expect(loginPage.passwordLabel).toHaveText('Password');
+    await expect(loginPage.emailLabel).toHaveText('Your Email');
+    await expect(loginPage.passwordLabel).toHaveText('Your Password');
 
     expect(await loginPage.getEmailPlaceholder()).toBe('email@example.com');
     expect(await loginPage.getPasswordPlaceholder()).toBe('enter your passsword');
